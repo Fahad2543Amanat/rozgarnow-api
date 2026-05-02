@@ -18,13 +18,11 @@ namespace RozgarNowAPIs.Controllers
 
         // ================= SIGNUP =================
         [HttpPost("signup")]
-        public async Task<IActionResult> Signup(UserModel user)
+        public async Task<IActionResult> Signup([FromForm] UserModel user, IFormFile? logo, IFormFile? businessDoc, IFormFile? ntn, IFormFile? profileImage)
         {
-            // 🔥 validation
             if (string.IsNullOrEmpty(user.Email) || string.IsNullOrEmpty(user.Password))
                 return BadRequest("Email and Password are required");
 
-            // check existing user
             var existingUser = await _mongo.Users
                 .Find(x => x.Email == user.Email)
                 .FirstOrDefaultAsync();
@@ -32,7 +30,35 @@ namespace RozgarNowAPIs.Controllers
             if (existingUser != null)
                 return BadRequest("User already exists");
 
-            // default status
+            // ================= FILE UPLOAD LOGIC =================
+            string uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+
+            if (!Directory.Exists(uploadPath))
+                Directory.CreateDirectory(uploadPath);
+
+            string SaveFile(IFormFile file)
+            {
+                if (file == null) return null;
+
+                string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+                string fullPath = Path.Combine(uploadPath, fileName);
+
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    file.CopyTo(stream);
+                }
+
+                return fileName;
+            }
+
+            // CLIENT FILES
+            user.LogoUrl = SaveFile(logo);
+            user.BusinessDocUrl = SaveFile(businessDoc);
+            user.NtnUrl = SaveFile(ntn);
+
+            // WORKER FILES
+            user.ProfileImageUrl = SaveFile(profileImage);
+
             user.VerificationStatus = "Pending";
 
             await _mongo.Users.InsertOneAsync(user);
@@ -40,14 +66,7 @@ namespace RozgarNowAPIs.Controllers
             return Ok(new
             {
                 message = "Account created successfully",
-                user = new
-                {
-                    user.Id,
-                    user.Name,
-                    user.Email,
-                    user.Role,
-                    user.Phone
-                }
+                user
             });
         }
 
