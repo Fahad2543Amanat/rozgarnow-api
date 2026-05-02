@@ -1,4 +1,5 @@
-﻿using RozgarNowAPIs.Services;
+﻿using Microsoft.Extensions.FileProviders;
+using RozgarNowAPIs.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,17 @@ app.UseHttpsRedirection();
 
 // CORS enable
 app.UseCors("AllowAll");
+
+// 🔥 STATIC FILES ENABLE (IMPORTANT FOR IMAGES)
+app.UseStaticFiles();
+
+// 🔥 UPLOADS FOLDER PUBLIC ACCESS
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
+    RequestPath = "/Uploads"
+});
 
 app.UseAuthorization();
 
