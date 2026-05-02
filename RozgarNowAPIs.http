@@ -1,0 +1,6 @@
+@RozgarNowAPIs_HostAddress = http://localhost:5144
+
+GET {{RozgarNowAPIs_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
