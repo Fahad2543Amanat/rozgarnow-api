@@ -11,10 +11,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// 🔥 MongoDB Service inject
+// MongoDB Service inject
 builder.Services.AddSingleton<MongoDbService>();
 
-// 🔥 CORS (React frontend ke liye MUST)
+// CORS (React frontend ke liye MUST)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -30,16 +30,14 @@ var app = builder.Build();
 
 // ---------------- PIPELINE ----------------
 
-// Swagger
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// 🔥 Swagger (FIXED: always enable)
+app.UseSwagger();
+app.UseSwaggerUI();
 
+// HTTPS redirect
 app.UseHttpsRedirection();
 
-// 🔥 CORS enable karo yahan
+// CORS enable
 app.UseCors("AllowAll");
 
 app.UseAuthorization();
