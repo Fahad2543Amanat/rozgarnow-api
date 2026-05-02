@@ -74,15 +74,17 @@ namespace RozgarNowAPIs.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserModel login)
         {
-            if (string.IsNullOrEmpty(login.Email) || string.IsNullOrEmpty(login.Password))
-                return BadRequest("Email and Password required");
+            // ✅ validation (PHONE + PASSWORD)
+            if (string.IsNullOrEmpty(login.Phone) || string.IsNullOrEmpty(login.Password))
+                return BadRequest("Phone and Password required");
 
+            // 🔥 login using phone
             var user = await _mongo.Users
-                .Find(x => x.Email == login.Email && x.Password == login.Password)
+                .Find(x => x.Phone == login.Phone && x.Password == login.Password)
                 .FirstOrDefaultAsync();
 
             if (user == null)
-                return Unauthorized("Invalid email or password");
+                return Unauthorized("Invalid phone number or password");
 
             return Ok(new
             {
