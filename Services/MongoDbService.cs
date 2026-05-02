@@ -31,5 +31,8 @@ namespace RozgarNowAPIs.Services
 
         public IMongoCollection<UserModel> Users =>
             _db.GetCollection<UserModel>("Users");
+
+        public IMongoCollection<JobModel> Jobs =>
+         _db.GetCollection<JobModel>("Jobs");
     }
 }
