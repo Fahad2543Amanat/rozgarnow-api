@@ -72,7 +72,7 @@ namespace RozgarNowAPIs.Controllers
 
         // ================= LOGIN =================
         [HttpPost("login")]
-        public async Task<IActionResult> Login(UserModel login)
+        public async Task<IActionResult> Login([FromBody] LoginRequest login)
         {
             // ✅ validation (PHONE + PASSWORD)
             if (string.IsNullOrEmpty(login.Phone) || string.IsNullOrEmpty(login.Password))
