@@ -74,11 +74,9 @@ namespace RozgarNowAPIs.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest login)
         {
-            // ✅ validation (PHONE + PASSWORD)
             if (string.IsNullOrEmpty(login.Phone) || string.IsNullOrEmpty(login.Password))
                 return BadRequest("Phone and Password required");
 
-            // 🔥 login using phone
             var user = await _mongo.Users
                 .Find(x => x.Phone == login.Phone && x.Password == login.Password)
                 .FirstOrDefaultAsync();
@@ -95,7 +93,29 @@ namespace RozgarNowAPIs.Controllers
                     user.Name,
                     user.Email,
                     user.Role,
-                    user.Phone
+                    user.Phone,
+
+                    // CLIENT DATA
+                    user.Company,
+                    user.Category,
+                    user.Address,
+                    user.LogoUrl,
+                    user.BusinessDocUrl,
+                    user.NtnUrl,
+
+                    // WORKER DATA
+                    user.Cnic,
+                    user.City,
+                    user.Skills,
+                    user.Experience,
+                    user.Location,
+                    user.Radius,
+                    user.ProfileImageUrl,
+                    user.CnicFrontUrl,
+                    user.CnicBackUrl,
+
+                    // STATUS
+                    user.VerificationStatus
                 }
             });
         }
