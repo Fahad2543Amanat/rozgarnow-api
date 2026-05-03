@@ -84,20 +84,39 @@ namespace RozgarNowAPIs.Controllers
         {
             try
             {
+                // 🔹 Get all jobs of this client
                 var jobs = await _mongo.Jobs
                     .Find(x => x.ClientId == clientId)
                     .ToListAsync();
 
                 var jobIds = jobs.Select(j => j.Id).ToList();
 
+                // 🔹 Get bids for those jobs
                 var bids = await _mongo.Bids
                     .Find(x => jobIds.Contains(x.JobId))
                     .ToListAsync();
 
+                // 🔥 JOIN DATA (IMPORTANT)
+                var result = bids.Select(b => new
+                {
+                    b.Id,
+                    b.JobId,
+                    b.WorkerId,
+                    b.BidAmount,
+                    b.Status,
+                    b.CreatedAt,
+
+                    // ✅ Job Info
+                    Job = jobs.FirstOrDefault(j => j.Id == b.JobId),
+
+                    // ⚠️ Worker Info (optional — agar users collection ho)
+                    // Worker = await _mongo.Users.Find(u => u.Id == b.WorkerId).FirstOrDefaultAsync()
+                });
+
                 return Ok(new
                 {
                     message = "Client bids fetched",
-                    data = bids
+                    data = result
                 });
             }
             catch (Exception ex)
