@@ -17,5 +17,13 @@ namespace RozgarNowAPIs.Models
         public string Status { get; set; } = "Pending";
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // 🔥 NEW FIELDS (IMPORTANT)
+        public string JobTitle { get; set; }
+        public string BudgetMin { get; set; }
+        public string BudgetMax { get; set; }
+
+        public string WorkerName { get; set; }
+        public string WorkerLocation { get; set; }
     }
 }

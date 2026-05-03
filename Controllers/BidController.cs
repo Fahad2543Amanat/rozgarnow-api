@@ -31,6 +31,9 @@ namespace RozgarNowAPIs.Controllers
                 if (string.IsNullOrEmpty(bid.WorkerId))
                     return BadRequest("WorkerId required");
 
+                if (string.IsNullOrEmpty(bid.BidAmount))
+                    return BadRequest("Bid amount required");
+
                 bid.Status = "Pending";
                 bid.CreatedAt = DateTime.UtcNow;
 
