@@ -2,6 +2,8 @@
 using MongoDB.Driver;
 using RozgarNowAPIs.Models;
 using RozgarNowAPIs.Services;
+using Newtonsoft.Json.Linq;
+using System.Net.Http;
 
 namespace RozgarNowAPIs.Controllers
 {
@@ -87,40 +89,50 @@ namespace RozgarNowAPIs.Controllers
         {
             try
             {
-                // 🔹 Get all jobs of this client
+                // 🔹 Jobs of client
                 var jobs = await _mongo.Jobs
                     .Find(x => x.ClientId == clientId)
                     .ToListAsync();
 
                 var jobIds = jobs.Select(j => j.Id).ToList();
 
-                // 🔹 Get bids for those jobs
+                // 🔹 Bids
                 var bids = await _mongo.Bids
                     .Find(x => jobIds.Contains(x.JobId))
                     .ToListAsync();
 
-                // 🔹 Get all users (workers)
+                // 🔹 Users (workers)
                 var users = await _mongo.Users
                     .Find(_ => true)
                     .ToListAsync();
 
-                // 🔥 JOIN DATA (OLD LOGIC SAME — ONLY EXTENDED)
-                var result = bids.Select(b => new
+                // 🔥 JOIN DATA
+                var result = new List<object>();
+
+                foreach (var b in bids)
                 {
-                    b.Id,
-                    b.JobId,
-                    b.WorkerId,
-                    b.BidAmount,
-                    b.Status,
-                    b.CreatedAt,
+                    var job = jobs.FirstOrDefault(j => j.Id == b.JobId);
+                    var worker = users.FirstOrDefault(u => u.Id == b.WorkerId);
 
-                    // ✅ Job Info (same as before)
-                    Job = jobs.FirstOrDefault(j => j.Id == b.JobId),
+                    // 🔥 CITY FROM LAT/LONG
+                    var city = await GetCityFromCoordinates(worker?.Location);
 
-                    // ✅ NEW: Worker Info
-                    WorkerName = users.FirstOrDefault(u => u.Id == b.WorkerId)?.Name,
-                    WorkerLocation = users.FirstOrDefault(u => u.Id == b.WorkerId)?.Location
-                });
+                    result.Add(new
+                    {
+                        b.Id,
+                        b.JobId,
+                        b.WorkerId,
+                        b.BidAmount,
+                        b.Status,
+                        b.CreatedAt,
+
+                        Job = job,
+
+                        WorkerName = worker?.Name,
+                        WorkerLocation = worker?.Location,
+                        WorkerCity = city   // ✅ NEW FIELD
+                    });
+                }
 
                 return Ok(new
                 {
@@ -137,6 +149,7 @@ namespace RozgarNowAPIs.Controllers
                 });
             }
         }
+
 
         // ================= ACCEPT / REJECT =================
         [HttpPut("update-status/{id}")]
@@ -159,5 +172,43 @@ namespace RozgarNowAPIs.Controllers
                 });
             }
         }
-    }
+
+        // ================= 🔥 NEW: LAT/LONG → CITY =================
+        private async Task<string> GetCityFromCoordinates(string coords)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(coords))
+                    return "Unknown";
+
+                var parts = coords.Split(',');
+                if (parts.Length != 2)
+                    return "Unknown";
+
+                var lat = parts[0].Trim();
+                var lng = parts[1].Trim();
+
+                string apiKey = "da7ee24e572d4fed9e6aeec1472c6f97"; // 🔴 PUT YOUR KEY HERE
+
+                var url = $"https://api.opencagedata.com/geocode/v1/json?q={lat}+{lng}&key={apiKey}";
+
+                using var client = new HttpClient();
+                var response = await client.GetStringAsync(url);
+
+                var json = JObject.Parse(response);
+
+                var components = json["results"]?[0]?["components"];
+
+                return components?["city"]?.ToString()
+                    ?? components?["town"]?.ToString()
+                    ?? components?["state"]?.ToString()
+                    ?? "Unknown";
+            }
+            catch
+            {
+                return "Unknown";
+            }
+        }
+    
+}
 }
