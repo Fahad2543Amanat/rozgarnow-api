@@ -31,7 +31,7 @@ namespace RozgarNowAPIs.Controllers
                 if (string.IsNullOrEmpty(bid.WorkerId))
                     return BadRequest("WorkerId required");
 
-                if (string.IsNullOrEmpty(bid.BidAmount))
+                if (string.IsNullOrWhiteSpace(bid.BidAmount))
                     return BadRequest("Bid amount required");
 
                 bid.Status = "Pending";
@@ -99,7 +99,12 @@ namespace RozgarNowAPIs.Controllers
                     .Find(x => jobIds.Contains(x.JobId))
                     .ToListAsync();
 
-                // 🔥 JOIN DATA (IMPORTANT)
+                // 🔹 Get all users (workers)
+                var users = await _mongo.Users
+                    .Find(_ => true)
+                    .ToListAsync();
+
+                // 🔥 JOIN DATA (OLD LOGIC SAME — ONLY EXTENDED)
                 var result = bids.Select(b => new
                 {
                     b.Id,
@@ -109,11 +114,12 @@ namespace RozgarNowAPIs.Controllers
                     b.Status,
                     b.CreatedAt,
 
-                    // ✅ Job Info
+                    // ✅ Job Info (same as before)
                     Job = jobs.FirstOrDefault(j => j.Id == b.JobId),
 
-                    // ⚠️ Worker Info (optional — agar users collection ho)
-                    // Worker = await _mongo.Users.Find(u => u.Id == b.WorkerId).FirstOrDefaultAsync()
+                    // ✅ NEW: Worker Info
+                    WorkerName = users.FirstOrDefault(u => u.Id == b.WorkerId)?.Name,
+                    WorkerLocation = users.FirstOrDefault(u => u.Id == b.WorkerId)?.Location
                 });
 
                 return Ok(new
