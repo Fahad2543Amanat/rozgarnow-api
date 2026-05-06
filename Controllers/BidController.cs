@@ -151,6 +151,7 @@ namespace RozgarNowAPIs.Controllers
         }
 
         // ================= GET WORKER BIDS =================
+        // ================= GET WORKER BIDS =================
         [HttpGet("worker/{workerId}")]
         public async Task<IActionResult> GetWorkerBids(string workerId)
         {
@@ -166,18 +167,35 @@ namespace RozgarNowAPIs.Controllers
                     .Find(_ => true)
                     .ToListAsync();
 
-                // 🔥 JOIN DATA
-                var result = bids.Select(b => new
-                {
-                    b.Id,
-                    b.JobId,
-                    b.ClientId,
-                    b.WorkerId,
-                    b.BidAmount,
-                    b.Status,
-                    b.CreatedAt,
+                // 🔹 users
+                var users = await _mongo.Users
+                    .Find(_ => true)
+                    .ToListAsync();
 
-                    Job = jobs.FirstOrDefault(j => j.Id == b.JobId)
+                // 🔥 JOIN DATA
+                var result = bids.Select(b =>
+                {
+                    var job = jobs.FirstOrDefault(j => j.Id == b.JobId);
+
+                    // 🔥 client user
+                    var client = users.FirstOrDefault(u => u.Id == b.ClientId);
+
+                    return new
+                    {
+                        b.Id,
+                        b.JobId,
+                        b.ClientId,
+                        b.WorkerId,
+                        b.BidAmount,
+                        b.Status,
+                        b.CreatedAt,
+
+                        // ✅ job info
+                        Job = job,
+
+                        // ✅ client name
+                        ClientName = client?.Name
+                    };
                 });
 
                 return Ok(new
