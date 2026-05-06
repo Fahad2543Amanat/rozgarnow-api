@@ -150,6 +150,52 @@ namespace RozgarNowAPIs.Controllers
             }
         }
 
+        // ================= GET WORKER BIDS =================
+        [HttpGet("worker/{workerId}")]
+        public async Task<IActionResult> GetWorkerBids(string workerId)
+        {
+            try
+            {
+                // 🔹 worker ki bids
+                var bids = await _mongo.Bids
+                    .Find(x => x.WorkerId == workerId)
+                    .ToListAsync();
+
+                // 🔹 jobs
+                var jobs = await _mongo.Jobs
+                    .Find(_ => true)
+                    .ToListAsync();
+
+                // 🔥 JOIN DATA
+                var result = bids.Select(b => new
+                {
+                    b.Id,
+                    b.JobId,
+                    b.ClientId,
+                    b.WorkerId,
+                    b.BidAmount,
+                    b.Status,
+                    b.CreatedAt,
+
+                    Job = jobs.FirstOrDefault(j => j.Id == b.JobId)
+                });
+
+                return Ok(new
+                {
+                    message = "Worker jobs fetched",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Error fetching worker jobs",
+                    error = ex.Message
+                });
+            }
+        }
+
 
         // ================= ACCEPT / REJECT =================
         [HttpPut("update-status/{id}")]
