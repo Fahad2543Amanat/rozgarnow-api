@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RozgarNowAPIs")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9491a97b8862c3ae562c4e027c683b7f95fa43d3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+25b834f2d72053fa23c1a5f4ae812c56a6fde94b")]
 [assembly: System.Reflection.AssemblyProductAttribute("RozgarNowAPIs")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RozgarNowAPIs")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
